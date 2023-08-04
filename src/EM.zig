@@ -7,7 +7,7 @@ const SparseSetUnmanaged = @import("SparseSet.zig").SparseSetUnmanaged;
 const Tuple = @import("Tuple.zig");
 
 pub const Entity = Entities.Handle;
-const SparseSet = SparseSetUnmanaged(Entity);
+pub const SparseSet = SparseSetUnmanaged(Entity);
 
 // EMS stands for Entities Modules
 // Pretty similar to an ECS, but instead of having components in array, we bind modules to entities
@@ -318,11 +318,13 @@ pub fn EntitiesModules(comptime Modules: anytype, comptime Options: EntityModule
 
         pub fn getMultiModuleEntitySet(self: *Self, comptime tags: []const @TypeOf(.enum_literal)) !MultiModuleEntitySet(tags) {
             var sets: [32]*SparseSet = undefined;
+            var count: usize = 0;
             inline for (tags, 0..) |tag, index| {
                 var module = self.getModule(tag);
                 sets[index] = &module.internal_handle.entitySet;
+                count += 1;
             }
-            var newSet = try SparseSet.getIntersection(self.allocator, sets[0..tags.len]);
+            var newSet = try SparseSet.initIntersection(self.allocator, sets[0..count]);
             return MultiModuleEntitySet(tags){
                 .world = self,
                 .entitySet = newSet,
