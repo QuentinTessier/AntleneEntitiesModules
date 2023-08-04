@@ -38,6 +38,28 @@ pub fn SparseSetUnmanaged(comptime IntType: type) type {
             };
         }
 
+        pub fn initIntersection(allocator: std.mem.Allocator, sets: []const *Self) !Self {
+            var expected_capacity: usize = std.math.maxInt(usize);
+            var expected_maxValue = sets[0].maxValue;
+            for (sets) |set| {
+                expected_capacity = @min(expected_capacity, set.capacity);
+                expected_maxValue = @max(expected_maxValue, set.maxValue);
+            }
+            var newSet = try Self.init(allocator, expected_capacity, expected_maxValue);
+            for (sets[0].dense[0..sets[0].offset]) |value| {
+                var count: u32 = 0;
+                for (sets[1..]) |set| {
+                    if (set.search(value) != null) {
+                        count += 1;
+                    }
+                }
+                if (count == sets.len - 1) {
+                    _ = newSet.insert(value);
+                }
+            }
+            return newSet;
+        }
+
         pub fn grow(self: *Self, allocator: std.mem.Allocator, new_capacity: usize) !void {
             self.sparse = try allocator.realloc(self.sparse, new_capacity);
             self.dense = try allocator.realloc(self.dense, new_capacity);

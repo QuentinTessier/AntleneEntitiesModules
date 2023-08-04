@@ -13,7 +13,12 @@ const TestModule2 = EM.Module.Ensure(struct {
     pub const components = .{ .c3 = u32, .c4 = f32 };
 });
 
-const Modules = EM.Module.EnsureMultiple(.{ TestModule, TestModule2 });
+const TestModule3 = EM.Module.Ensure(struct {
+    pub const tag = .test_module3;
+    pub const components = .{ .c5 = u32, .c6 = f32 };
+});
+
+const Modules = EM.Module.EnsureMultiple(.{ TestModule, TestModule2, TestModule3 });
 
 const World = EM.EntitiesModules(Modules, .{});
 
@@ -28,6 +33,7 @@ pub fn main() !void {
 
     var m1 = em.getModule(.test_module);
     var m2 = em.getModule(.test_module2);
+    var m3 = em.getModule(.test_module3);
 
     var m1State = m1.getState();
     m1State.stateVariable = @as(f32, 1.01);
@@ -49,9 +55,17 @@ pub fn main() !void {
                 .c4 = 1.0,
             });
         }
+
+        if (i > 490) {
+            try m3.attachEntity(e);
+            try m3.setComponents(e, .{
+                .c5 = @as(u8, 1),
+                .c6 = 1.0,
+            });
+        }
     }
 
-    var s = try em.getMultiModuleEntitySet(&.{ .test_module, .test_module2 });
+    var s = try em.getMultiModuleEntitySet(&.{ .test_module, .test_module2, .test_module3 });
     defer s.deinit();
 
     var ite = s.iterator();
@@ -66,7 +80,9 @@ test "Simple World with 1 module" {
         pub const tag = .m1;
         pub const components = .{ .c1 = u32 };
     };
+
     const W = EM.EntitiesModules(EM.Module.EnsureMultiple(.{m1}), .{});
+
     var em = try W.init(allocator);
     defer em.deinit();
 
