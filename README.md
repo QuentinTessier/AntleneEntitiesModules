@@ -14,7 +14,7 @@ const PrintModule = struct {
     pub fn tick(module: *World.ModuleHandle(.printer), deltaTime: f32) void {
         const entities = module.getEntities();
         for (entities) |e| {
-            std.log.info("{}:{s}", .{entities, module.getComponent(e, .name)});
+            std.log.info("{}:{s}", .{e, module.getComponent(e, .name)});
         }
     }
 };
