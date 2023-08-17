@@ -23,6 +23,23 @@ const Modules = EM.Module.EnsureMultiple(.{ PrintModule });
 
 const World = EM.EntitiesModules(Modules, .{});
 
+pub fn main() anyerror!void {
 
+    var allocator = getAllocator(); // Any allocator
+
+    var world = World.init(allocator);
+    defer world.deinit();
+
+    var printer_module = world.getModule(.printer);
+
+    var e = try world.createEntity();
+
+    try printer_module.attachEntity(e);
+    try printer_module.setComponents(e, .{
+        .string = "Bob",
+    });
+
+    world.execute(.tick, 1.0);
+}
 
 ```
