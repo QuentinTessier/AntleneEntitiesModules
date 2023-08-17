@@ -4,6 +4,7 @@ Kinda like an ECS but with a more compartmentalized approach
 Quick Example:
 
 ```Zig
+const EM = @import("EM.zig");
 
 const PrintModule = struct {
     pub const tag = .printer;
@@ -36,7 +37,7 @@ pub fn main() anyerror!void {
 
     try printer_module.attachEntity(e);
     try printer_module.setComponents(e, .{
-        .string = "Bob",
+        .name = "Bob",
     });
 
     world.execute(.tick, 1.0);
