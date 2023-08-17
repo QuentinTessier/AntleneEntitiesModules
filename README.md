@@ -1,25 +1,28 @@
 # AntleneEntitiesModules
 Kinda like an ECS but with a more compartmentalized approach
 
-Syntax:
-
-Module:
+Quick Example:
 
 ```Zig
 
-const Module = struct {
-    [Mandatory Fields]
-    pub const tag = .name;
+const PrintModule = struct {
+    pub const tag = .printer;
     pub const components = .{
-        .component1 = type,
-        .component2 = type,
-        ...
+        .name = []const u8,
     };
-    [Optional Fields]
-    pub const capacity: usize = 10_000;
 
-    [Methods]
-    pub fn methodName(anyargs) void {}
+    pub fn tick(module: *World.ModuleHandle(.printer), deltaTime: f32) void {
+        const entities = module.getEntities();
+        for (entities) |e| {
+            std.log.info("{}:{s}", .{entities, module.getComponent(e, .name)});
+        }
+    }
 };
+
+const Modules = EM.Module.EnsureMultiple(.{ PrintModule });
+
+const World = EM.EntitiesModules(Modules, .{});
+
+
 
 ```
