@@ -1,57 +1,25 @@
 const std = @import("std");
 
-inline fn thisDir() []const u8 {
-    return comptime std.fs.path.dirname(@src().file) orelse ".";
-}
-
-pub const Package = struct {
-    module: *std.Build.Module,
-
-    pub fn link(pkg: Package, exe: *std.build.CompileStep) void {
-        exe.addModule("em", pkg.module);
-    }
-};
-
-pub fn package(b: *std.Build, _: std.zig.CrossTarget, _: std.builtin.Mode) Package {
-    const module = b.createModule(.{ .source_file = .{ .path = thisDir() ++ "/src/EM.zig" } });
-    return .{
-        .module = module,
-    };
-}
-
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
 
     const optimize = b.standardOptimizeOption(.{});
 
-    const exe = b.addExecutable(.{
-        .name = "AntleneEntitiesModules",
+    _ = b.addModule("AntleneEntitiesModules", .{
+        .root_source_file = .{ .path = "src/main.zig" },
+    });
+
+    const test_step = b.step("test", "Run lib test");
+    test_step.dependOn(&testStep(b, target, optimize).step);
+}
+
+pub fn testStep(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.builtin.OptimizeMode) *std.Build.Step.Run {
+    const tests = b.addTest(.{
+        .name = "AntleneEntitiesModules-Tests",
         .root_source_file = .{ .path = "src/main.zig" },
         .target = target,
         .optimize = optimize,
     });
-
-    b.installArtifact(exe);
-
-    const run_cmd = b.addRunArtifact(exe);
-
-    run_cmd.step.dependOn(b.getInstallStep());
-
-    if (b.args) |args| {
-        run_cmd.addArgs(args);
-    }
-
-    const run_step = b.step("run", "Run the app");
-    run_step.dependOn(&run_cmd.step);
-
-    const unit_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/main.zig" },
-        .target = target,
-        .optimize = optimize,
-    });
-
-    const run_unit_tests = b.addRunArtifact(unit_tests);
-
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_unit_tests.step);
+    b.installArtifact(tests);
+    return b.addRunArtifact(tests);
 }

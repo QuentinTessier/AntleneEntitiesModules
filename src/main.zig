@@ -40,7 +40,7 @@ pub fn main() !void {
 
     var i: usize = 0;
     while (i < 500) : (i += 1) {
-        var e = try em.createEntity();
+        const e = try em.createEntity();
 
         try m1.attachEntity(e);
         try m1.setComponents(e, .{
